@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import {app} from "@www/app";
-import env from "@lib/env";
+import env from "../lib/env";
 
 mongoose.connect(env.DB_URL_LOCAL)
     .then(() => {
+    console.log("connected");
     }
     ).catch(err => {
     console.log(err)

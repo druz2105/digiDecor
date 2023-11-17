@@ -3,8 +3,8 @@ import UserService from "@users/models";
 const userService = new UserService();
 
 import { NextFunction, Request, Response } from "express";
-import { UserModelInterface } from "../src/lib/interfaces/users/userModel";
-import env from "../src/lib/env";
+import { UserModelInterface } from "../lib/interfaces/users/userModel";
+import env from "../lib/env";
 
 function convertKeysToCamelCase(obj: Record<string, any>) {
   const newObj = {};

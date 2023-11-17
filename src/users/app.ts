@@ -3,7 +3,7 @@ import UserService from "./models";
 import url from "url";
 import fs from "fs";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import env from "@lib/env";
+import env from "../../lib/env";
 
 const userService = new UserService();
 export const getAllUsers = async (request, response) => {

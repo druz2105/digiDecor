@@ -4,13 +4,13 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import sgMail from "@sendgrid/mail";
-import env from "@lib/env";
+import env from "../../lib/env";
 import {
   CreateUserInterface,
   UpdateUserInterface,
   UserLoginInterface,
   UserModelInterface,
-} from "@lib/interfaces/users/userModel";
+} from "../../lib/interfaces/users/userModel";
 
 sgMail.setApiKey(env.SENDGRID_KEY);
 

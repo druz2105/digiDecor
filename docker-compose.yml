@@ -12,7 +12,7 @@ services:
       - ./tmp-data:/data/db
     command: mongod --bind_ip_all
 
-  app_name:
+  digi_decor:
     build: .
     volumes:
       - .:/app
