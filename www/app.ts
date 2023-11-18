@@ -1,7 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import { camelCaseParser } from "@www/custom.middelewares";
-import { userRouter } from "../src/users/routes";
+import { userRouter } from "../src/users/userRoutes";
 
 export const app = express();
 app.use(express.json());

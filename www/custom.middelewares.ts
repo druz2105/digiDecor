@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import UserService from "@users/models";
+import UserService from "@users/userModels";
 const userService = new UserService();
 
 import { NextFunction, Request, Response } from "express";

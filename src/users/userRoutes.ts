@@ -2,12 +2,11 @@ import {
   createUser,
   deleteUser,
   forgotPassword,
-  getAllUsers,
   getUser,
   loginUser,
   resetPassword,
   updateUser,
-} from "./app";
+} from "./userAPIs";
 
 import express from "express";
 
@@ -22,5 +21,4 @@ userRouter.route("/resetPassword").post(resetPassword);
 
 // Requires Authentication
 userRouter.use(jwtDecoder);
-userRouter.route("/list").get(getAllUsers);
 userRouter.route("/").get(getUser).patch(updateUser).delete(deleteUser);

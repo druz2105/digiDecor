@@ -8,7 +8,6 @@ export interface UserModelInterface extends Document {
   lastLogin: number | null;
   lastName?: string;
   password: string;
-  username: string;
 }
 
 export interface CreateUserInterface {
@@ -16,7 +15,6 @@ export interface CreateUserInterface {
   firstName?: string;
   lastName?: string;
   password: string;
-  username: string;
   [key: string]: any;
 }
 
@@ -25,9 +23,7 @@ export interface UpdateUserInterface {
   email?: string;
   firstName?: string;
   lastName?: string;
-  password?: string;
-  username?: string;
-  [key: string]: any;
+  password?: string
 }
 
 export interface CreateJWTTokenInterface {
@@ -35,13 +31,16 @@ export interface CreateJWTTokenInterface {
   email?: string;
   lastLogin: string;
   password?: string;
-  username?: string;
+
   [key: string]: any;
 }
 
-export interface UserLoginInterface {
-  email?: string;
-  password: string;
-  username?: string;
-  [key: string]: any;
+export interface LoginUserInterface {
+  email: string;
+  password: string
+}
+
+export interface PasswordResetUser {
+  uniqueString: string;
+  password: string
 }

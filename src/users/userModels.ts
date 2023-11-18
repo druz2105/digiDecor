@@ -8,18 +8,13 @@ import env from "../../lib/env";
 import {
   CreateUserInterface,
   UpdateUserInterface,
-  UserLoginInterface,
+  LoginUserInterface,
   UserModelInterface,
 } from "../../lib/interfaces/users/userModel";
 
 sgMail.setApiKey(env.SENDGRID_KEY);
 
 const userSchema = new mongoose.Schema<UserModelInterface>({
-  username: {
-    type: String,
-    required: [true, "A user must have username"],
-    unique: true,
-  },
   email: {
     type: String,
     required: [true, "A user must have email"],
@@ -60,17 +55,9 @@ export default class UserService {
   createUser = async (data: CreateUserInterface) => {
     data.email = data.email.toLowerCase();
     const oldUserEmail = await UserModel.findOne({ email: data.email });
-    const oldUserUserName = await UserModel.findOne({
-      username: data.username,
-    });
 
     if (oldUserEmail) {
-      throw { message: "User with this Email Already Exist. Please Login" };
-    }
-    if (oldUserUserName) {
-      throw {
-        message: "User with this Username Already Exist. Please Login",
-      };
+      throw { message: "User with this Email Already Exist. Please Login", "errCode": "emailError" };
     }
     data.password = this.createPassword(data.password);
     return UserModel.create(data);
@@ -92,31 +79,26 @@ export default class UserService {
     );
   };
 
-  loginUser = async (data: UserLoginInterface) => {
+  loginUser = async (data: LoginUserInterface) => {
     let user: UserModelInterface | null | undefined = undefined;
     if (data.email) {
       data.email = data.email.toLowerCase();
       user = await UserModel.findOne({ email: data.email });
-    } else if (data.username) {
-      user = await UserModel.findOne({ username: data.username });
     }
     if (!user) {
       throw {
-        message: "User not found, make sure Email or Username is correct",
+        message: "User not found, make sure Email is correct",
       };
     } else {
       const checkValid = this.checkPassword(data.password, user.password);
       if (checkValid) {
-        if (!user.active) {
-          throw { message: "User not verified, check email for verification!" };
-        }
         user.lastLogin = new Date().getTime();
         await user.save();
         user.jwtToken = this.createJWTToken(user);
       } else {
         throw {
           message:
-            "User not valid, make sure Email or Username and Password is correct",
+            "User not valid, make sure Email and Password is correct",
         };
       }
     }
@@ -141,7 +123,7 @@ export default class UserService {
       subject: "Verify User Account",
       templateId: env.VERIFY_ACCOUNT_TEMPLATE,
       dynamicTemplateData: {
-        fullName: user.username,
+        fullName: user.firstName,
         verificationLink: verificationLink,
       },
     };
@@ -247,16 +229,6 @@ export default class UserService {
       const oldUserEmail = await UserModel.findOne({ email: data.email });
       if (oldUserEmail && !oldUserEmail._id.equals(id)) {
         throw { message: "User with this Email Already Exist. Please Login" };
-      }
-    }
-    if (data.username) {
-      const oldUserUserName = await UserModel.findOne({
-        username: data.username,
-      });
-      if (oldUserUserName && !oldUserUserName._id.equals(id)) {
-        throw {
-          message: "User with this Username Already Exist. Please Login",
-        };
       }
     }
     return UserModel.findByIdAndUpdate(id, data, {
