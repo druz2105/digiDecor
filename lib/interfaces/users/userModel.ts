@@ -1,47 +1,47 @@
 import { Document } from "mongodb";
 
 export interface UserModelInterface extends Document {
-  username: string;
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
   active: boolean;
   createdAt: number;
+  email: string;
+  firstName?: string;
   lastLogin: number | null;
+  lastName?: string;
+  password: string;
+  username: string;
 }
 
 export interface CreateUserInterface {
-  username: string;
   email: string;
-  password: string;
   firstName?: string;
   lastName?: string;
+  password: string;
+  username: string;
   [key: string]: any;
 }
 
 export interface UpdateUserInterface {
-  username?: string;
+  active?: boolean;
   email?: string;
-  password?: string;
   firstName?: string;
   lastName?: string;
-  active?: boolean;
+  password?: string;
+  username?: string;
   [key: string]: any;
 }
 
 export interface CreateJWTTokenInterface {
   _id: string;
-  username?: string;
   email?: string;
   lastLogin: string;
   password?: string;
+  username?: string;
   [key: string]: any;
 }
 
 export interface UserLoginInterface {
-  username?: string;
   email?: string;
   password: string;
+  username?: string;
   [key: string]: any;
 }

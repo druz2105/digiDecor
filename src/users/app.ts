@@ -52,8 +52,8 @@ export const createUser = async (request, response) => {
     const {
       email,
       username,
-      fistName: firstName,
-      lastName: lastName,
+      firstName,
+      lastName,
       createdAt,
       active,
       _id,
