@@ -5,6 +5,7 @@ const userService = new UserService();
 import { NextFunction, Request, Response } from "express";
 import { UserModelInterface } from "../lib/interfaces/users/userModel";
 import env from "../lib/env";
+import * as console from "console";
 
 function convertKeysToCamelCase(obj: Record<string, any>) {
   const newObj = {};
@@ -50,27 +51,43 @@ const verifyLastLogin = async (userId: string, lastLogin: number) => {
   }
 };
 
-export const jwtDecoder = async (
-  request: any,
-  response: any,
-  next: NextFunction
+export const verifyToken = async (
+    request: any
 ) => {
   let token =
     request.body.token || request.query.token || request.headers.authorization;
   if (!token || !token.startsWith("JWT")) {
-    return response
-      .status(403)
-      .json({ message: "A token is required for authentication" });
+    return 403;
   }
   try {
     token = token.replace("JWT ", "");
     const decoded = jwt.verify(token, env.TOKEN_KEY) as Record<string, any>;
     if (!(await verifyLastLogin(decoded.user_id, decoded.lastLogin))) {
-      return response.status(401).send("Invalid Token");
+      return 401
     }
     request.user = await userService.findById(decoded.user_id);
+    return 200
   } catch (err) {
-    return response.status(401).send("Invalid Token");
+    return 401
+  }
+};
+
+export const jwtDecoder = async (
+  request: any,
+  response: any,
+  next: NextFunction
+) => {
+   const statusCode = await verifyToken(request)
+  if(statusCode === 403){
+    return response
+        .status(403)
+        .json({ message: "A token is required for authentication" });
+  }
+  if(statusCode === 401){
+    return response
+        .status(401)
+        .json({ message: "Invalid Token" });
   }
   next();
 };
+

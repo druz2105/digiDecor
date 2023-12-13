@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema<UserModelInterface>({
     type: String,
     required: [true, "A user must have password"],
   },
-  fistName: {
+  firstName: {
     type: String,
     default: "",
   },

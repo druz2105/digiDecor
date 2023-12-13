@@ -11,6 +11,7 @@ import {
   PasswordResetUser,
   UpdateUserInterface
 } from "../../lib/interfaces/users/userModel";
+import {verifyToken} from "@www/custom.middelewares";
 
 const userService = new UserService();
 
@@ -179,7 +180,7 @@ export const getUser = async (request, response) => {
     }
     const {
       email,
-      fistName: firstName,
+      firstName: firstName,
       lastName: lastName,
       createdAt,
       active,
@@ -253,6 +254,20 @@ export const deleteUser = async (request, response) => {
         .json({ status: "Failed", message: "data not found!" });
     }
     return response.status(204).json();
+  } catch (err) {
+    return response.status(400).json({ status: "Failed", message: err.message });
+  }
+};
+
+export const verifyUserToken = async (request, response) => {
+  try {
+    await verifyToken(request);
+    if (request.user) {
+      return response.status(200).json({message: "User Verified!"});
+    }
+    return response
+          .status(404)
+          .json({ status: "Failed", message: "Failed to verify" });
   } catch (err) {
     return response.status(400).json({ status: "Failed", message: err.message });
   }
