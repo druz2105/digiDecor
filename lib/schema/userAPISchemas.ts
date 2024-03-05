@@ -4,7 +4,7 @@ import {
     LoginUserInterface,
     PasswordResetUser,
     UpdateUserInterface
-} from "../interfaces/users/userModel";
+} from "../interfaces/users/user-model-interface";
 
 export const POSTUserRegister =Joi.object<CreateUserInterface>({
     email: Joi.string().email().required(),

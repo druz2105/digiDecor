@@ -1,11 +1,14 @@
 import jwt from "jsonwebtoken";
-import UserService from "@users/userModels";
+import { UserService } from "@users/user.models";
 const userService = new UserService();
 
 import { NextFunction, Request, Response } from "express";
-import { UserModelInterface } from "../lib/interfaces/users/userModel";
+import { UserModelInterface } from "../lib/interfaces/users/user-model-interface";
 import env from "../lib/env";
 import * as console from "console";
+import * as path from "path";
+import fs from "fs";
+import { sequelize } from "../database/config";
 
 function convertKeysToCamelCase(obj: Record<string, any>) {
   const newObj = {};
@@ -22,6 +25,39 @@ function convertKeysToCamelCase(obj: Record<string, any>) {
 
   return newObj;
 }
+
+export const syncModels = async () => {
+  try {
+    const modelsDir = path.join(__dirname, "../src");
+
+    const findModelFiles = (dir) => {
+      const files = fs.readdirSync(dir);
+
+      let modelFiles = [] as string[];
+      files.forEach((file) => {
+        const fullPath = path.join(dir, file);
+        if (fs.statSync(fullPath).isDirectory()) {
+          modelFiles = modelFiles.concat(findModelFiles(fullPath)); // Recurse into subfolders
+        } else if (fullPath.endsWith(".models.ts")) {
+          modelFiles.push(fullPath);
+        }
+      });
+
+      return modelFiles;
+    };
+
+    const modelFiles = findModelFiles(modelsDir);
+
+    // Import and sync each model
+    for (const modelPath of modelFiles) {
+      require(modelPath);
+      await sequelize.sync();
+    }
+    console.log("All models synced successfully.");
+  } catch (error) {
+    console.error("Error syncing models:", error);
+  }
+};
 
 export const camelCaseParser = (
   request: Request,
@@ -51,9 +87,7 @@ const verifyLastLogin = async (userId: string, lastLogin: number) => {
   }
 };
 
-export const verifyToken = async (
-    request: any
-) => {
+export const verifyToken = async (request: any) => {
   let token =
     request.body.token || request.query.token || request.headers.authorization;
   if (!token || !token.startsWith("JWT")) {
@@ -63,12 +97,12 @@ export const verifyToken = async (
     token = token.replace("JWT ", "");
     const decoded = jwt.verify(token, env.TOKEN_KEY) as Record<string, any>;
     if (!(await verifyLastLogin(decoded.user_id, decoded.lastLogin))) {
-      return 401
+      return 401;
     }
     request.user = await userService.findById(decoded.user_id);
-    return 200
+    return 200;
   } catch (err) {
-    return 401
+    return 401;
   }
 };
 
@@ -77,17 +111,14 @@ export const jwtDecoder = async (
   response: any,
   next: NextFunction
 ) => {
-   const statusCode = await verifyToken(request)
-  if(statusCode === 403){
+  const statusCode = await verifyToken(request);
+  if (statusCode === 403) {
     return response
-        .status(403)
-        .json({ message: "A token is required for authentication" });
+      .status(403)
+      .json({ message: "A token is required for authentication" });
   }
-  if(statusCode === 401){
-    return response
-        .status(401)
-        .json({ message: "Invalid Token" });
+  if (statusCode === 401) {
+    return response.status(401).json({ message: "Invalid Token" });
   }
   next();
 };
-

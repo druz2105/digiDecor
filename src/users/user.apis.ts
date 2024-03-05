@@ -1,17 +1,22 @@
-import UserService from "./userModels";
+import {UserService} from "./user.models";
 
 import url from "url";
 import fs from "fs";
-import jwt, {JwtPayload} from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import env from "../../lib/env";
-import {PATCHUserUpdate, POSTUserLogin, POSTUserPasswordReset, POSTUserRegister} from "../../lib/schema/userAPISchemas";
+import {
+  PATCHUserUpdate,
+  POSTUserLogin,
+  POSTUserPasswordReset,
+  POSTUserRegister,
+} from "../../lib/schema/userAPISchemas";
 import {
   CreateUserInterface,
   LoginUserInterface,
   PasswordResetUser,
-  UpdateUserInterface
-} from "../../lib/interfaces/users/userModel";
-import {verifyToken} from "@www/custom.middelewares";
+  UpdateUserInterface,
+} from "../../lib/interfaces/users/user-model-interface";
+import { verifyToken } from "@www/custom.middelewares";
 
 const userService = new UserService();
 
@@ -21,37 +26,32 @@ export const createUser = async (request, response) => {
     if (typeof request.body === "string") {
       payload = JSON.parse(request.body);
     } else {
-      payload = request.body as unknown as CreateUserInterface
+      payload = request.body as unknown as CreateUserInterface;
     }
     const validate = POSTUserRegister.validate(payload);
     if (validate.error) {
       const error = new Error(
-          `Validation Error : ${validate.error.details[0].message}`
+        `Validation Error : ${validate.error.details[0].message}`
       ) as any;
-      error.errorCode = "generalError"
-      throw error
+      error.errorCode = "generalError";
+      throw error;
     }
     const newUser = await userService.createUser(payload);
     userService.sendVerificationEmail(newUser);
-    const {
-      email,
-      firstName,
-      lastName,
-      createdAt,
-      active,
-      _id,
-    } = newUser;
+    const { email, firstName, lastName, createdAt, active, id } = newUser;
     const data = {
       email,
       firstName,
       lastName,
       createdAt,
       active,
-      _id,
+      id,
     };
     return response.status(201).json(data);
   } catch (err) {
-    return response.status(400).json({ status: "Failed", errorCode: err.errCode, message: err.message });
+    return response
+      .status(400)
+      .json({ status: "Failed", errorCode: err.errCode, message: err.message });
   }
 };
 
@@ -82,40 +82,34 @@ export const loginUser = async (request, response) => {
     if (typeof request.body === "string") {
       payload = JSON.parse(request.body);
     } else {
-      payload = request.body as unknown as LoginUserInterface
+      payload = request.body as unknown as LoginUserInterface;
     }
     const validate = POSTUserLogin.validate(payload);
     if (validate.error) {
       const error = new Error(
-          `Validation Error : ${validate.error.details[0].message}`
+        `Validation Error : ${validate.error.details[0].message}`
       ) as any;
-      error.errorCode = "generalError"
-      throw error
+      error.errorCode = "generalError";
+      throw error;
     }
 
     const user = await userService.loginUser(payload);
-    const {
-      email,
-      firstName,
-      lastName,
-      createdAt,
-      active,
-      _id,
-      jwtToken,
-    } = user;
+    const { email, firstName, lastName, createdAt, active, id } = user;
     const data = {
       email,
       firstName,
       lastName,
       createdAt,
       active,
-      _id,
-      jwtToken,
+      id,
+      jwtToken: userService.createJWTToken(user),
     };
     return response.status(200).json(data);
   } catch (err) {
     console.log(err);
-    return response.status(400).json({ status: "Failed", errorCode: err.errCode, message: err.message });
+    return response
+      .status(400)
+      .json({ status: "Failed", errorCode: err.errCode, message: err.message });
   }
 };
 
@@ -133,7 +127,9 @@ export const forgotPassword = async (request, response) => {
       .json({ status: "Success", message: "Email Sent!" });
   } catch (err) {
     console.log(err);
-    return response.status(400).json({ status: "Failed", message: err.message });
+    return response
+      .status(400)
+      .json({ status: "Failed", message: err.message });
   }
 };
 
@@ -143,36 +139,35 @@ export const resetPassword = async (request, response) => {
     if (typeof request.body === "string") {
       payload = JSON.parse(request.body);
     } else {
-      payload = request.body as unknown as PasswordResetUser
+      payload = request.body as unknown as PasswordResetUser;
     }
     const validate = POSTUserPasswordReset.validate(payload);
     if (validate.error) {
       const error = new Error(
-          `Validation Error : ${validate.error.details[0].message}`
+        `Validation Error : ${validate.error.details[0].message}`
       ) as any;
-      error.errorCode = "generalError"
-      throw error
+      error.errorCode = "generalError";
+      throw error;
     }
     const decoded = jwt.verify(
       payload.uniqueString,
       env.TOKEN_KEY
     ) as JwtPayload;
-    await userService.findAndUpdatePassword(
-      decoded.user_id,
-        payload.password
-    );
+    await userService.findAndUpdatePassword(decoded.user_id, payload.password);
     return response
       .status(200)
       .json({ status: "Success", message: "Password Changed" });
   } catch (err) {
     console.log(err);
-    return response.status(400).json({ status: "Failed", message: err.message });
+    return response
+      .status(400)
+      .json({ status: "Failed", message: err.message });
   }
 };
 
 export const getUser = async (request, response) => {
   try {
-    const user = await userService.getById(request.user._id);
+    const user = await userService.findById(request.user.id);
     if (user === null) {
       return response
         .status(404)
@@ -184,7 +179,7 @@ export const getUser = async (request, response) => {
       lastName: lastName,
       createdAt,
       active,
-      _id,
+      id,
     } = user;
     const data = {
       email,
@@ -192,7 +187,7 @@ export const getUser = async (request, response) => {
       lastName,
       createdAt,
       active,
-      _id,
+      id,
     };
     return response.status(200).json(data);
   } catch (err) {
@@ -205,18 +200,18 @@ export const updateUser = async (request, response) => {
     if (typeof request.body === "string") {
       payload = JSON.parse(request.body);
     } else {
-      payload = request.body as unknown as UpdateUserInterface
+      payload = request.body as unknown as UpdateUserInterface;
     }
     const validate = PATCHUserUpdate.validate(payload);
     if (validate.error) {
       const error = new Error(
-          `Validation Error : ${validate.error.details[0].message}`
+        `Validation Error : ${validate.error.details[0].message}`
       ) as any;
-      error.errorCode = "generalError"
-      throw error
+      error.errorCode = "generalError";
+      throw error;
     }
     const updatedUser = await userService.findAndUpdateUserData(
-      request.user._id,
+      request.user.id,
       payload
     );
     if (updatedUser === null) {
@@ -224,30 +219,25 @@ export const updateUser = async (request, response) => {
         .status(404)
         .json({ status: "Failed", message: "data not found!" });
     }
-    const {
-      email,
-      firstName,
-      lastName,
-      createdAt,
-      active,
-      _id,
-    } = updatedUser;
+    const { email, firstName, lastName, createdAt, active, id } = updatedUser;
     const data = {
       email,
       firstName,
       lastName,
       createdAt,
       active,
-      _id,
+      id,
     };
     return response.status(200).json(data);
   } catch (err) {
-    return response.status(400).json({ status: "Failed", message: err.message });
+    return response
+      .status(400)
+      .json({ status: "Failed", message: err.message });
   }
 };
 export const deleteUser = async (request, response) => {
   try {
-    const deleteUser = await userService.findAndDelete(request.user._id);
+    const deleteUser = await userService.findAndDelete(request.user.id);
     if (deleteUser === null) {
       return response
         .status(404)
@@ -255,7 +245,9 @@ export const deleteUser = async (request, response) => {
     }
     return response.status(204).json();
   } catch (err) {
-    return response.status(400).json({ status: "Failed", message: err.message });
+    return response
+      .status(400)
+      .json({ status: "Failed", message: err.message });
   }
 };
 
@@ -263,12 +255,14 @@ export const verifyUserToken = async (request, response) => {
   try {
     await verifyToken(request);
     if (request.user) {
-      return response.status(200).json({message: "User Verified!"});
+      return response.status(200).json({ message: "User Verified!" });
     }
     return response
-          .status(404)
-          .json({ status: "Failed", message: "Failed to verify" });
+      .status(404)
+      .json({ status: "Failed", message: "Failed to verify" });
   } catch (err) {
-    return response.status(400).json({ status: "Failed", message: err.message });
+    return response
+      .status(400)
+      .json({ status: "Failed", message: err.message });
   }
 };

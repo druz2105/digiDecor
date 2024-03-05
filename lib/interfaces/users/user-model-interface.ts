@@ -1,6 +1,7 @@
-import { Document } from "mongodb";
+import { Model, ModelAttributes } from "sequelize";
 
-export interface UserModelInterface extends Document {
+export interface UserModelInterface extends Model<any, ModelAttributes> {
+  id: number;
   active: boolean;
   createdAt: number;
   email: string;
@@ -23,7 +24,7 @@ export interface UpdateUserInterface {
   email?: string;
   firstName?: string;
   lastName?: string;
-  password?: string
+  password?: string;
 }
 
 export interface CreateJWTTokenInterface {
@@ -37,10 +38,10 @@ export interface CreateJWTTokenInterface {
 
 export interface LoginUserInterface {
   email: string;
-  password: string
+  password: string;
 }
 
 export interface PasswordResetUser {
   uniqueString: string;
-  password: string
+  password: string;
 }

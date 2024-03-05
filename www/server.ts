@@ -1,15 +1,19 @@
-import mongoose from "mongoose";
-import {app} from "@www/app";
+import { app } from "@www/app";
 import env from "../lib/env";
+import { sequelize } from "../database/config";
+import {syncModels} from "./custom.middelewares";
+const start = async () => {
+  try {
+    await sequelize.authenticate();
+    // await sequelize.sync();
+    await syncModels();
+    app.listen(env.PORT, () => {
+      console.log(`Server tarted on port ${env.PORT}`);
+    });
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+};
 
-mongoose.connect(env.DB_URL_LOCAL)
-    .then(() => {
-    console.log("connected");
-    }
-    ).catch(err => {
-    console.log(err)
-});
-
-app.listen(env.PORT || 3000, '0.0.0.0', () => {
-    console.log('App running on port 3000')
-})
+start();

@@ -1,3 +1,5 @@
+import express from "express";
+import { jwtDecoder } from "@www/custom.middelewares";
 import {
   createUser,
   deleteUser,
@@ -7,11 +9,7 @@ import {
   resetPassword,
   updateUser,
   verifyUserToken,
-} from "./userAPIs";
-
-import express from "express";
-
-import {jwtDecoder} from "@www/custom.middelewares";
+} from "./user.apis";
 
 export const userRouter = express.Router();
 
