@@ -3,6 +3,7 @@ import { cleanEnv, email, num, str } from "envalid";
 
 export default cleanEnv(process.env, {
   STAGE: str(),
+  BUCKET_URL: str(),
   DB_NAME: str(),
   DB_USER: str(),
   DB_PASSWORD: str(),

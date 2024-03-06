@@ -4,6 +4,7 @@ import {
 } from "../../lib/interfaces/products/product-model-interface";
 import { DataTypes } from "sequelize";
 import { sequelize } from "../../database/config";
+import { getFileURL } from "./utils";
 
 export const Product = sequelize.define<ProductModelInterface>("Product", {
   name: {
@@ -51,7 +52,12 @@ export class ProductService {
 
 export class CategoryService {
   async findAll() {
-    return Category.findAll();
+    const categories = await Category.findAll();
+
+    return categories.map((category) => ({
+      ...category.toJSON(), // Convert the category object to JSON format
+      imageURL: getFileURL(category.image), // Add the image URL
+    }));
   }
 
   findById(id) {
