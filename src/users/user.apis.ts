@@ -63,7 +63,7 @@ export const verifyUser = async (request, response) => {
   }
   const user = await userService.findAndUpdateUserData(slug, { active: true });
   if (user && user.active) {
-    fs.readFile("./templates/user-verified.html", "utf8", (err, data) => {
+    fs.readFile("./views/user-verified.html", "utf8", (err, data) => {
       if (err) {
         console.error(err);
         return response.status(500).send("Internal Server Error");
