@@ -132,6 +132,9 @@ dist
 # Extra files
 
 .idea
+.postgresEnv
 .mongoEnv
+.env
+.envrc
 tmp-data
 .sgKeys

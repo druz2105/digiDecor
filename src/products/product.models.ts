@@ -18,7 +18,7 @@ export const Product = sequelize.define<ProductModelInterface>("Product", {
     type: DataTypes.STRING,
   },
   description: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
   },
   dimensions: {
     type: DataTypes.STRING,

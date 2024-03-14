@@ -5,7 +5,6 @@ const productService = new ProductService();
 export const getCategories = async (_request, response) => {
   try {
     const categories = await categoryService.findAll();
-    console.log(categories, "categories>>>>>>>>>>");
     return response.status(200).json(categories);
   } catch (err) {
     return response

@@ -1,42 +1,27 @@
 services:
 
   pgadmin:
-      image: dpage/pgadmin4
-      environment:
-        - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-        - PGADMIN_DEFAULT_PASSWORD=root
-        - PGADMIN_LISTEN_ADDRESS=0.0.0.0
-      ports:
-        - "5050:80"
-      volumes:
-        - ./tmp-data/pgadmin:/var/lib/pgadmin
-      command: sh -c "chown -R 5050:5050 tmp-data/pgadmin"
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+      - PGADMIN_LISTEN_ADDRESS=0.0.0.0
+    ports:
+      - "5050:80"
+    volumes:
+      - ./tmp-data/pgadmin:/var/lib/pgadmin
+    command: sh -c "chown -R 5050:5050 tmp-data/pgadmin"
   
   digi-decor-db:
     image: postgres:14.4-bullseye
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=UserApps
-      - POSTGRES_HOST_AUTH_METHOD=md5
+    env_file:
+      - ./.postgresEnv
     ports:
       - "5434:5432"
     volumes:
       - ./tmp-data/digi-decor-db:/var/lib/postgresql/data
     depends_on:
       - pgadmin
-
-  mongodb:
-    image: mongo:6.0.1
-    container_name: mongodb
-    restart: unless-stopped
-    env_file:
-      - ./.mongoEnv
-    ports:
-      - "27018:27017"
-    volumes:
-      - ./tmp-data:/data/db
-    command: mongod --bind_ip_all
 
   digi_decor:
     build: .
