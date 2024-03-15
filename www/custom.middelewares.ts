@@ -90,6 +90,7 @@ const verifyLastLogin = async (userId: string, lastLogin: number) => {
 export const verifyToken = async (request: any) => {
   let token =
     request.body.token || request.query.token || request.headers.authorization;
+  console.log(token)
   if (!token || !token.startsWith("JWT")) {
     return 403;
   }
@@ -100,6 +101,7 @@ export const verifyToken = async (request: any) => {
       return 401;
     }
     request.user = await userService.findById(decoded.user_id);
+    console.log(request.user, "request.user>>>>>>>>>>>>")
     return 200;
   } catch (err) {
     return 401;
@@ -115,10 +117,10 @@ export const jwtDecoder = async (
   if (statusCode === 403) {
     return response
       .status(403)
-      .json({ message: "A token is required for authentication" });
+      .json({ message: "User Authentication Failed!" });
   }
   if (statusCode === 401) {
-    return response.status(401).json({ message: "Invalid Token" });
+    return response.status(401).json({ message: "User Authentication Failed!" });
   }
   next();
 };

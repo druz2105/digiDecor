@@ -19,3 +19,8 @@ export interface ProductImagesModelInterface extends Model<any, ModelAttributes>
   productId: string;
   image: string;
 }
+
+export interface LikedProductModelInterface extends Model<any, ModelAttributes> {
+  productId: string;
+  userId: string;
+}

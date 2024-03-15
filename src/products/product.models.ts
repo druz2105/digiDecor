@@ -1,14 +1,16 @@
 import {
   CategoryModelInterface,
+  LikedProductModelInterface,
   ProductImagesModelInterface,
   ProductModelInterface,
 } from "../../lib/interfaces/products/product-model-interface";
 import {DataTypes} from "sequelize";
 import {sequelize} from "../../database/config";
 import {getFileURL} from "./utils";
+import {UserModel} from "@users/user.models";
 
-// Define Category model
-export const Category = sequelize.define<CategoryModelInterface>("Category", {
+// Define CategoryModel model
+export const CategoryModel = sequelize.define<CategoryModelInterface>("Category", {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -21,8 +23,8 @@ export const Category = sequelize.define<CategoryModelInterface>("Category", {
   },
 });
 
-// Define Product model
-export const Product = sequelize.define<ProductModelInterface>("Product", {
+// Define ProductModel model
+export const ProductModel = sequelize.define<ProductModelInterface>("Product", {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -31,7 +33,7 @@ export const Product = sequelize.define<ProductModelInterface>("Product", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Category,
+      model: CategoryModel,
       key: 'id'
     }
   },
@@ -46,8 +48,8 @@ export const Product = sequelize.define<ProductModelInterface>("Product", {
   },
 });
 
-// Define ProductImages model
-export const ProductImages = sequelize.define<ProductImagesModelInterface>("ProductImages", {
+// Define ProductImagesModel model
+export const ProductImagesModel = sequelize.define<ProductImagesModelInterface>("ProductImages", {
   image: {
     type: DataTypes.STRING,
   },
@@ -55,46 +57,92 @@ export const ProductImages = sequelize.define<ProductImagesModelInterface>("Prod
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Product,
+      model: ProductModel,
       key: 'id'
     }
   }
 });
 
-Product.belongsTo(Category, {foreignKey: 'categoryId'});
+ProductModel.belongsTo(CategoryModel, {foreignKey: 'categoryId'});
 
-Product.hasMany(ProductImages, { foreignKey: 'productId' });
-ProductImages.belongsTo(Product, {foreignKey: 'productId'});
+ProductModel.hasMany(ProductImagesModel, { as: 'images', foreignKey: 'productId' });
+ProductImagesModel.belongsTo(ProductModel, {foreignKey: 'productId'});
+
+export const LikedProductModel = sequelize.define<LikedProductModelInterface>("LikedProduct", {
+  productId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: ProductModel,
+      key: 'id'
+    }
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: UserModel,
+      key: 'id'
+    }
+  }
+}, {
+  indexes: [
+    {
+      unique: true,
+      fields: ['userId', 'productId']
+    }
+  ]
+});
+
+LikedProductModel.belongsTo(ProductModel, {foreignKey: 'productId'});
+LikedProductModel.belongsTo(UserModel, {foreignKey: 'userId'});
 
 export class ProductService {
   filterableFields = ["name", "categoryID"];
 
-  async findById(id) {
-    return Product.findByPk(id);
+  async findById(id: number) {
+    const product = await ProductModel.findByPk(id, {include: [{
+        model: ProductImagesModel,
+        attributes: ['image'],
+        as: 'images'
+      }],});
+    if (product){
+      const imageURLs = product.images.map((image: ProductImagesModelInterface) => {
+        return getFileURL(image.image);
+      });
+      return {
+        ...product.toJSON(),
+        imageURLs: imageURLs
+
+      }
+    }
+    throw Error("No ProductModel Found")
   }
 
   async findAll(){
-    return Product.findAll()
+    return ProductModel.findAll()
   }
 
   async findByCategory(categoryId: number) {
-    const products = await Product.findAll({ where: { categoryId: categoryId }, include: [{
-        model: ProductImages,
+    const products = await ProductModel.findAll({ where: { categoryId: categoryId }, include: [{
+        model: ProductImagesModel,
         attributes: ['image'],
+        as: 'images',
         limit: 1
       }],
+      order: [['id', 'ASC']],
     });
 
     return products.map((product) => ({
       ...product.toJSON(), // Convert the category object to JSON format
-      imageURL: getFileURL(product.ProductImages[0].image), // Add the image URL
+      imageURL: getFileURL(product.images[0].image), // Add the image URL
     }));
   }
 }
 
 export class CategoryService {
   async findAll() {
-    const categories = await Category.findAll();
+    const categories = await CategoryModel.findAll();
 
     return categories.map((category) => ({
       ...category.toJSON(), // Convert the category object to JSON format
@@ -103,15 +151,35 @@ export class CategoryService {
   }
 
   async findById(id) {
-    return Category.findByPk(id);
+    return CategoryModel.findByPk(id);
   }
 }
 
-export class ProductImageService {
-  async findByProductId(productId: number) {
-    await ProductImages.findAll({ where: { productId: productId } });
-    return {}
+
+export class LikedProductService {
+  async saveLikeProduct(data: any): Promise<LikedProductModelInterface> {
+    try {
+      return await LikedProductModel.create(data);
+    } catch (error) {
+      throw error;
+    }
   }
 
-}
+  async removeLikeProduct(data: { userId: string, productId: string }): Promise<boolean> {
+    try {
+      await LikedProductModel.destroy({ where: data} );
+      return true
+    } catch (error) {
+      throw error;
+    }
+  }
 
+  async likedProductByUser(userId: string): Promise<LikedProductModelInterface[]> {
+    try {
+      const likedProducts = await LikedProductModel.findAll({ where: { userId: userId } });
+      return likedProducts.map((likedProduct: any) => likedProduct.toJSON()) as LikedProductModelInterface[];
+    } catch (error) {
+      throw error;
+    }
+  }
+}
