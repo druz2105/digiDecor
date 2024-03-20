@@ -135,7 +135,7 @@ export class ProductService {
 
     return products.map((product) => ({
       ...product.toJSON(), // Convert the category object to JSON format
-      imageURL: getFileURL(product.images[0].image), // Add the image URL
+      imageURL: product.images.length ? getFileURL(product.images[0].image) : '', // Add the image URL
     }));
   }
 }
