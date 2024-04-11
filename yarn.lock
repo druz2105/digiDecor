@@ -2446,6 +2446,11 @@ raw-body@2.5.1:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
+react-native-3d-model-view@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-3d-model-view/-/react-native-3d-model-view-1.2.0.tgz#347680b884c7e1bbc9998c3537fee549e30f6b56"
+  integrity sha512-/okNGTUy53TsKcK1T7M1+C856Z0VgqE79iCgH0zvD1g3B64DH65kbB7HOk6XbQeyFmAHab1vCeZjDNbmoqBEbA==
+
 readable-stream@3, readable-stream@^3.4.0, readable-stream@^3.6.0:
   version "3.6.2"
   resolved "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz"

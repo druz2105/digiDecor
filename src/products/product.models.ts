@@ -129,9 +129,14 @@ export class ProductService {
           return getFileURL(image.image);
         }
       );
+      let modelURL: string | null = null;
+      if (product.modelURL) {
+        modelURL = getFileURL(product.modelURL);
+      }
       return {
         ...product.toJSON(),
         imageURLs: imageURLs,
+        modelURL: modelURL,
       };
     }
     throw Error("No ProductModel Found");
